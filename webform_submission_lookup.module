@@ -5,7 +5,7 @@
  */
 function webform_submission_lookup_menu(){
 	$items = array();
-	$items['node/%/lookup'] = array(
+	$items['node/%webform_menu/lookup'] = array(
       'title' => t('Lookup'),
       'description' => t('Choose random result'),
       'page callback' => 'webform_submission_lookup_display',
@@ -38,7 +38,8 @@ function webform_submission_lookup_display($nid){
 	return $output;
 }
 
-function webform_submission_lookup_form(&$form_state,$nid){
+function webform_submission_lookup_form(&$form_state,$node){
+	$nid = $node->nid;
 	$form = array(
 		'email' => array(
 			'#title' => t('Email Address'),
@@ -54,7 +55,7 @@ function webform_submission_lookup_form(&$form_state,$nid){
 	);
 	$form['path'] = array(
 		'#type' => 'hidden',
-		'#default_value' => "node/$nid/lookup",
+		'#default_value' => "node/lookup",
 	);
 	return $form;
 }
