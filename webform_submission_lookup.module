@@ -17,7 +17,8 @@ function webform_submission_lookup_menu(){
 	return $items;
 }
 
-function webform_submission_lookup_display($nid){
+function webform_submission_lookup_display($node){
+	$nid = $node->nid;
 	$output = drupal_get_form('webform_submission_lookup_form',$nid);
 	if(isset($_GET['email_lookup'])){
 		$email = $_GET['email_lookup'];
@@ -38,8 +39,7 @@ function webform_submission_lookup_display($nid){
 	return $output;
 }
 
-function webform_submission_lookup_form(&$form_state,$node){
-	$nid = $node->nid;
+function webform_submission_lookup_form(&$form_state,$nid){
 	$form = array(
 		'email' => array(
 			'#title' => t('Email Address'),
@@ -55,7 +55,7 @@ function webform_submission_lookup_form(&$form_state,$node){
 	);
 	$form['path'] = array(
 		'#type' => 'hidden',
-		'#default_value' => "node/lookup",
+		'#default_value' => "node/$nid/lookup",
 	);
 	return $form;
 }
@@ -70,6 +70,7 @@ function webform_submission_lookup_form_submit($form, &$form_state){
 }
 
 function webform_submission_lookup_query($nid,$email){
+	
 	if(!valid_email_address($email)){
 		drupal_set_message('Please enter a properly-formed e-mail address','warning');
 		return FALSE;
