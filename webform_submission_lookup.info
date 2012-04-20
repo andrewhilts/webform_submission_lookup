@@ -1,0 +1,7 @@
+; $Id:
+name            = "Webform Email Lookup"
+description     = "Provides ability to search webform submitted data for an email address, and return matching submissions."
+core            = "6.x"
+version         = "6.x-1.0"
+
+dependencies[]  = webform
