@@ -76,7 +76,7 @@ function webform_submission_lookup_query($nid,$email){
 
 	$sql = "SELECT DISTINCT ws.sid sid, ws.is_draft, wsd.data, wsd.nid, ws.submitted FROM {webform_submissions} ws INNER JOIN {webform_submitted_data} wsd ON (ws.sid = wsd.sid) WHERE ws.nid = %d AND wsd.data = '%s' ORDER BY ws.submitted DESC";
 	
-	$result = db_query($sql,$nid,$email);
+	$result = db_query($sql,$nid,strtolower($email));
 	
 	$submissions = array();
   while ( $row = db_fetch_object($result) ) {
