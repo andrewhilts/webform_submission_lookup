@@ -17,6 +17,16 @@ function webform_submission_lookup_menu(){
 	return $items;
 }
 
+/**
+ * Implements hook_views_api().
+ */
+function webform_submission_lookup_views_api() {
+  return array(
+    'api' => 2.0,
+    'path' => drupal_get_path('module', 'webform_submission_lookup') . '/views',
+  );
+}
+
 function webform_submission_lookup_display($node){
 	$nid = $node->nid;
 	$output = drupal_get_form('webform_submission_lookup_form',$nid);
