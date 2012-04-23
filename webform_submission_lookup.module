@@ -10,7 +10,7 @@ function webform_submission_lookup_menu(){
       'description' => t('Choose random result'),
       'page callback' => 'webform_submission_lookup_display',
       'page arguments' => array(1),
-      'access arguments' => array('webform lookup'),
+      'access arguments' => array('webform submission lookup'),
       'type' => MENU_LOCAL_TASK,
       'weight' => 10,
     );
@@ -21,7 +21,7 @@ function webform_submission_lookup_menu(){
  * Implements hook_perm().
  */
 function webform_submission_lookup_perm() {
-  return array('webform lookup', 'Access a form for webforms that lets the user search through submissions');
+  return array('webform submission lookup');
 }
 
 /**
