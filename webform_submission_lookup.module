@@ -103,7 +103,7 @@ function webform_submission_lookup_query($nid,$email,$cids){
 	$vars = array(
 		'%nid' => $nid,
 		'%email' => strtolower($email),
-		'%cids' => $cids,
+		'%cids' => db_placeholders($cids),
 	);
 	
 	$result = db_query($sql,$vars);
