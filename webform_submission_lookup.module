@@ -43,8 +43,13 @@ function webform_submission_lookup_display($node){
 			drupal_set_message('Please enter a properly-formed e-mail address','warning');
 		}
 		else{
+			//Get email cid(s)
+			$cids = webform_submission_lookup_get_cids($nid,"email");
+			if(!$cids){
+				return ;
+			}
 			$submissions=array();
-			$submissions = webform_submission_lookup_query($nid,$email);
+			$submissions = webform_submission_lookup_query($nid,$email,$cids);
 			if(count($submissions) > 0){
 				$output .= theme('webform_submission_lookup_table',$submissions);
 			}
@@ -86,16 +91,22 @@ function webform_submission_lookup_form_submit($form, &$form_state){
 	$form_state['redirect'] = array($form_state['values']['path'],$query);
 }
 
-function webform_submission_lookup_query($nid,$email){
+function webform_submission_lookup_query($nid,$email,$cids){
 	
 	if(!valid_email_address($email)){
 		drupal_set_message('Please enter a properly-formed e-mail address','warning');
 		return FALSE;
 	}
 
-	$sql = "SELECT DISTINCT ws.sid sid, ws.is_draft, wsd.data, wsd.nid, ws.submitted FROM {webform_submissions} ws INNER JOIN {webform_submitted_data} wsd ON (ws.sid = wsd.sid) WHERE ws.nid = %d AND wsd.data = '%s' ORDER BY ws.submitted DESC";
+	$sql = "SELECT DISTINCT ws.sid sid, ws.is_draft, wsd.data, wsd.nid, ws.submitted FROM {webform_submissions} ws INNER JOIN {webform_submitted_data} wsd ON (ws.sid = wsd.sid) WHERE ws.nid = %nid AND wsd.data = '%email' AND wsd.cid IN (%cids) ORDER BY ws.submitted DESC";
 	
-	$result = db_query($sql,$nid,strtolower($email));
+	$vars = array(
+		'%nid' => $nid,
+		'%email' => strtolower($email),
+		'%cids' => $cids,
+	);
+	
+	$result = db_query($sql,$vars);
 	
 	$submissions = array();
   while ( $row = db_fetch_object($result) ) {
@@ -105,6 +116,20 @@ function webform_submission_lookup_query($nid,$email){
   }
 
 	return $submissions;
+}
+
+function webform_submission_lookup_get_cids($nid,$type){
+	$sql = "SELECT DISTINCT cid FROM {webform_component} WHERE nid=%d AND type = '%s'";
+	$result = db_query($sql,$nid,$type);
+	$components = array();
+	while ($row = db_fetch_object($result)) {
+		$components[] = $row->cid;
+	}
+	if(!isset($component[0])){
+		drupal_set_message('No $type component found for this node.','error');
+		return FALSE;
+	}
+	return $components;
 }
 
 function theme_webform_submission_lookup_table($submissions){
