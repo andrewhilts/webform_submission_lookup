@@ -109,7 +109,7 @@ function webform_submission_lookup_query($nid,$email,$cids){
     return FALSE;
   }
 
-  $sql = "SELECT DISTINCT ws.sid sid, ws.is_draft, wsd.data, wsd.nid, ws.submitted FROM {webform_submissions} ws INNER JOIN {webform_submitted_data} wsd ON (ws.sid = wsd.sid) WHERE ws.nid = %d AND wsd.data = '%s' AND wsd.cid IN (".db_placeholders($cids).") GROUP BY ws.sid ORDER BY ws.submitted DESC";
+  $sql = "SELECT DISTINCT ws.sid sid, ws.is_draft, wsd.data, wsd.nid, ws.submitted FROM {webform_submissions} ws INNER JOIN {webform_submitted_data} wsd ON (ws.sid = wsd.sid) WHERE ws.nid = %d AND wsd.data = '%s' AND wsd.cid IN (".db_placeholders($cids).") ORDER BY ws.submitted DESC";
 
   $vars = array_merge(array($nid,$email),$cids);
 
