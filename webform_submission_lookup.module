@@ -57,7 +57,7 @@ function webform_submission_lookup_display($node){
 			//Get email cid(s)
 			$cids = webform_submission_lookup_get_cids($nid,"email");
 			if(!$cids){
-				return ;
+				return array("yo");
 			}
 			$submissions=array();
 			$submissions = webform_submission_lookup_query($nid,$email,$cids);
@@ -109,13 +109,9 @@ function webform_submission_lookup_query($nid,$email,$cids){
 		return FALSE;
 	}
 
-	$sql = "SELECT DISTINCT ws.sid sid, ws.is_draft, wsd.data, wsd.nid, ws.submitted FROM {webform_submissions} ws INNER JOIN {webform_submitted_data} wsd ON (ws.sid = wsd.sid) WHERE ws.nid = %nid AND wsd.data = '%email' AND wsd.cid IN (%cids) ORDER BY ws.submitted DESC";
+	$sql = "SELECT DISTINCT ws.sid sid, ws.is_draft, wsd.data, wsd.nid, ws.submitted FROM {webform_submissions} ws INNER JOIN {webform_submitted_data} wsd ON (ws.sid = wsd.sid) WHERE ws.nid = %d AND wsd.data = '%s' AND wsd.cid IN (".db_placeholders($cids).") GROUP BY ws.sid ORDER BY ws.submitted DESC";
 	
-	$vars = array(
-		'%nid' => $nid,
-		'%email' => strtolower($email),
-		'%cids' => db_placeholders($cids),
-	);
+	$vars = array_merge(array($nid,$email),$cids);
 	
 	$result = db_query($sql,$vars);
 	
@@ -125,7 +121,6 @@ function webform_submission_lookup_query($nid,$email,$cids){
       $submissions[] = $row;
     }
   }
-
 	return $submissions;
 }
 
@@ -136,8 +131,8 @@ function webform_submission_lookup_get_cids($nid,$type){
 	while ($row = db_fetch_object($result)) {
 		$components[] = $row->cid;
 	}
-	if(!isset($component[0])){
-		drupal_set_message('No $type component found for this node.','error');
+	if(!isset($components[0])){
+		drupal_set_message("No $type component found for this node.",'error');
 		return FALSE;
 	}
 	return $components;
