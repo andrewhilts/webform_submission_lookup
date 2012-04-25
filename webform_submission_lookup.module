@@ -15,8 +15,8 @@ To review a copy of the GNU General Public License, see http://www.gnu.org/licen
  * Implementation of hook_menu()
  */
 function webform_submission_lookup_menu(){
-	$items = array();
-	$items['node/%webform_menu/lookup'] = array(
+  $items = array();
+  $items['node/%webform_menu/lookup'] = array(
       'title' => t('Lookup'),
       'description' => t('Choose random result'),
       'page callback' => 'webform_submission_lookup_display',
@@ -25,7 +25,7 @@ function webform_submission_lookup_menu(){
       'type' => MENU_LOCAL_TASK,
       'weight' => 10,
     );
-	return $items;
+  return $items;
 }
 
 /**
@@ -46,121 +46,121 @@ function webform_submission_lookup_views_api() {
 }
 
 function webform_submission_lookup_display($node){
-	$nid = $node->nid;
-	$output = drupal_get_form('webform_submission_lookup_form',$nid);
-	if(isset($_GET['email_lookup'])){
-		$email = $_GET['email_lookup'];
-		if(!valid_email_address($email)){
-			drupal_set_message('Please enter a properly-formed e-mail address','warning');
-		}
-		else{
-			//Get email cid(s)
-			$cids = webform_submission_lookup_get_cids($nid,"email");
-			if(!$cids){
-				return array("yo");
-			}
-			$submissions=array();
-			$submissions = webform_submission_lookup_query($nid,$email,$cids);
-			if(count($submissions) > 0){
-				$output .= theme('webform_submission_lookup_table',$submissions);
-			}
-			else{
-				drupal_set_message(t("No submissions found for that email"));
-			}
-		}
-	}
-	return $output;
+  $nid = $node->nid;
+  $output = drupal_get_form('webform_submission_lookup_form',$nid);
+  if(isset($_GET['email_lookup'])){
+    $email = $_GET['email_lookup'];
+    if(!valid_email_address($email)){
+      drupal_set_message('Please enter a properly-formed e-mail address','warning');
+    }
+    else{
+      //Get email cid(s)
+      $cids = webform_submission_lookup_get_cids($nid,"email");
+      if(!$cids){
+        return array("yo");
+      }
+      $submissions=array();
+      $submissions = webform_submission_lookup_query($nid,$email,$cids);
+      if(count($submissions) > 0){
+        $output .= theme('webform_submission_lookup_table',$submissions);
+      }
+      else{
+        drupal_set_message(t("No submissions found for that email"));
+      }
+    }
+  }
+  return $output;
 }
 
 function webform_submission_lookup_form(&$form_state,$nid){
-	$form = array(
-		'email' => array(
-			'#title' => t('Email Address'),
-			'#type' => 'textfield',
-			'#size' => 30,
-			'#maxlength' => 200,
-			'#description' => t('Enter an email address to check if it is present in the webform submissions'),
-		),
-		'submit' => array(
-			'#type' => 'submit',
-			'#default_value' => t('Lookup Address!'),
-		)
-	);
-	$form['path'] = array(
-		'#type' => 'hidden',
-		'#default_value' => "node/$nid/lookup",
-	);
-	return $form;
+  $form = array(
+    'email' => array(
+      '#title' => t('Email Address'),
+      '#type' => 'textfield',
+      '#size' => 30,
+      '#maxlength' => 200,
+      '#description' => t('Enter an email address to check if it is present in the webform submissions'),
+    ),
+    'submit' => array(
+      '#type' => 'submit',
+      '#default_value' => t('Lookup Address!'),
+    )
+  );
+  $form['path'] = array(
+    '#type' => 'hidden',
+    '#default_value' => "node/$nid/lookup",
+  );
+  return $form;
 }
 
 function webform_submission_lookup_form_submit($form, &$form_state){
 
-	$query = array(
-		'email_lookup' => $form_state['values']['email'],
-	);
+  $query = array(
+    'email_lookup' => $form_state['values']['email'],
+  );
 
-	$form_state['redirect'] = array($form_state['values']['path'],$query);
+  $form_state['redirect'] = array($form_state['values']['path'],$query);
 }
 
 function webform_submission_lookup_query($nid,$email,$cids){
-	
-	if(!valid_email_address($email)){
-		drupal_set_message('Please enter a properly-formed e-mail address','warning');
-		return FALSE;
-	}
 
-	$sql = "SELECT DISTINCT ws.sid sid, ws.is_draft, wsd.data, wsd.nid, ws.submitted FROM {webform_submissions} ws INNER JOIN {webform_submitted_data} wsd ON (ws.sid = wsd.sid) WHERE ws.nid = %d AND wsd.data = '%s' AND wsd.cid IN (".db_placeholders($cids).") GROUP BY ws.sid ORDER BY ws.submitted DESC";
-	
-	$vars = array_merge(array($nid,$email),$cids);
-	
-	$result = db_query($sql,$vars);
-	
-	$submissions = array();
+  if(!valid_email_address($email)){
+    drupal_set_message('Please enter a properly-formed e-mail address','warning');
+    return FALSE;
+  }
+
+  $sql = "SELECT DISTINCT ws.sid sid, ws.is_draft, wsd.data, wsd.nid, ws.submitted FROM {webform_submissions} ws INNER JOIN {webform_submitted_data} wsd ON (ws.sid = wsd.sid) WHERE ws.nid = %d AND wsd.data = '%s' AND wsd.cid IN (".db_placeholders($cids).") GROUP BY ws.sid ORDER BY ws.submitted DESC";
+
+  $vars = array_merge(array($nid,$email),$cids);
+
+  $result = db_query($sql,$vars);
+
+  $submissions = array();
   while ( $row = db_fetch_object($result) ) {
     if ( $row->is_draft == 0 ) {
       $submissions[] = $row;
     }
   }
-	return $submissions;
+  return $submissions;
 }
 
 function webform_submission_lookup_get_cids($nid,$type){
-	$sql = "SELECT DISTINCT cid FROM {webform_component} WHERE nid=%d AND type = '%s'";
-	$result = db_query($sql,$nid,$type);
-	$components = array();
-	while ($row = db_fetch_object($result)) {
-		$components[] = $row->cid;
-	}
-	if(!isset($components[0])){
-		drupal_set_message("No $type component found for this node.",'error');
-		return FALSE;
-	}
-	return $components;
+  $sql = "SELECT DISTINCT cid FROM {webform_component} WHERE nid=%d AND type = '%s'";
+  $result = db_query($sql,$nid,$type);
+  $components = array();
+  while ($row = db_fetch_object($result)) {
+    $components[] = $row->cid;
+  }
+  if(!isset($components[0])){
+    drupal_set_message("No $type component found for this node.",'error');
+    return FALSE;
+  }
+  return $components;
 }
 
 function theme_webform_submission_lookup_table($submissions){
 
-	$header = array(
-		t('Email'),
-		t('Submission Date'),
-		t('Submission Link'),
-	);
-	foreach($submissions as $i => $s){
-		$path = "node/$s->nid/submission/$s->sid";
-		$rows [] = array(
-			$s->data,
-			date("F j, Y, g:i a",$s->submitted),
-			l(t('View sid #').$s->sid,$path),
-		);
-	}
-	return theme_table($header,$rows);
+  $header = array(
+    t('Email'),
+    t('Submission Date'),
+    t('Submission Link'),
+  );
+  foreach($submissions as $i => $s){
+    $path = "node/$s->nid/submission/$s->sid";
+    $rows [] = array(
+      $s->data,
+      date("F j, Y, g:i a",$s->submitted),
+      l(t('View sid #').$s->sid,$path),
+    );
+  }
+  return theme_table($header,$rows);
 }
 
 function webform_submission_lookup_theme(){
-	$theme = array(
-		'webform_submission_lookup_table' => array(
-			'arguments' => array('submissions' => NULL),
-		),
-	);
-	return $theme;
+  $theme = array(
+    'webform_submission_lookup_table' => array(
+      'arguments' => array('submissions' => NULL),
+    ),
+  );
+  return $theme;
 }
