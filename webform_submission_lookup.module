@@ -57,7 +57,7 @@ function webform_submission_lookup_display($node){
       //Get email cid(s)
       $cids = webform_submission_lookup_get_cids($nid,"email");
       if(!$cids){
-        return array("yo");
+        return $output;
       }
       $submissions=array();
       $submissions = webform_submission_lookup_query($nid,$email,$cids);
